@@ -1,0 +1,15 @@
+*/data/archive/*
+*/data/vab_database/*
+*/data/vab_t_database/*
+*/data/vab_database_extended/*
+*data/
+*features*
+*output*
+*queries*
+*models*
+*results*
+*resnet50*
+*segmentedData*
+*/__pycache__/*
+*.tflite
+*.pth
