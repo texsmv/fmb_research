@@ -36,11 +36,11 @@ class HomeUiController extends GetxController {
     o1o2o3Descriptor = O1O2O3Descriptor();
     loopDescriptor = LoopDescriptor();
 
-    _distancesWeights = [1.0, 1.0, 1.0];
+    _distancesWeights = [1.0, 5.0];
 
     _pageController = PageController();
 
-    _threshold = 0.5;
+    _threshold = 0.55;
     _thresholdController = TextEditingController(text: _threshold.toString());
     _thresholdController.addListener(() {
       _threshold = double.tryParse(_thresholdController.text) ?? _threshold;
