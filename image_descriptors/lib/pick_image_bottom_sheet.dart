@@ -5,7 +5,9 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 class PickImageBottomSheet extends StatefulWidget {
-  const PickImageBottomSheet({Key key}) : super(key: key);
+  final bool multiple;
+  const PickImageBottomSheet({Key key, this.multiple = false})
+      : super(key: key);
 
   @override
   _PickImageBottomSheetState createState() => _PickImageBottomSheetState();
@@ -84,12 +86,36 @@ class _PickImageBottomSheetState extends State<PickImageBottomSheet> {
 
   Future<void> _pickImage(ImageSource source) async {
     final ImagePicker _imagePicker = ImagePicker();
-    final PickedFile pickedfile = await _imagePicker.getImage(
-      source: source,
-      maxHeight: 400,
-      maxWidth: 400,
+    // final PickedFile pickedfile = await _imagePicker.getImage(
+    //   source: source,
+    //   maxHeight: 400,
+    //   maxWidth: 400,
+    // );
+    List<XFile> images;
+    if (widget.multiple) {
+      images = [
+        await _imagePicker.pickImage(
+          source: source,
+          maxWidth: 400,
+          maxHeight: 400,
+        )
+      ];
+      if (images[0] == null) return Get.back(result: null);
+    } else {
+      images = await _imagePicker.pickMultiImage(
+        // source: source,
+        maxWidth: 400,
+        maxHeight: 400,
+      );
+      if (images == null) return Get.back(result: null);
+    }
+
+    // if (pickedfile == null) return Get.back(result: null);
+    return Get.back(
+      result: List.generate(
+        images.length,
+        (index) => File(images[index].path),
+      ),
     );
-    if (pickedfile == null) return Get.back(result: null);
-    return Get.back(result: File(pickedfile.path));
   }
 }
