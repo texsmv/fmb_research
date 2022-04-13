@@ -6,10 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:get/get.dart';
 import 'package:image/image.dart' as img;
-import 'package:image_descriptors/descriptors/color/o1o2o3_descriptor.dart';
 import 'package:image_descriptors/descriptors/deep_metric/deep_metric.dart';
 import 'package:image_descriptors/descriptors/descriptors_utils.dart';
-import 'package:image_descriptors/descriptors/texture/loop_descriptor.dart';
 import 'package:image_descriptors/models/dog_model.dart';
 import 'package:image_descriptors/utils.dart';
 import 'package:loader_overlay/loader_overlay.dart';
@@ -31,42 +29,9 @@ class HomeUiController extends GetxController {
   @override
   onInit() {
     super.onInit();
+    deepMetric = DeepMetric();
     _datasetsModels = [];
-
-    o1o2o3Descriptor = O1O2O3Descriptor();
-    loopDescriptor = LoopDescriptor();
-
-    _distancesWeights = [1.0, 5.0];
-
     _pageController = PageController();
-
-    _threshold = 0.55;
-    _thresholdController = TextEditingController(text: _threshold.toString());
-    _thresholdController.addListener(() {
-      _threshold = double.tryParse(_thresholdController.text) ?? _threshold;
-      update(["dataset"]);
-    });
-
-    _colorController =
-        TextEditingController(text: _distancesWeights[0].toString());
-    _textureController =
-        TextEditingController(text: _distancesWeights[1].toString());
-    _colorController.addListener(() {
-      _distancesWeights[0] =
-          double.tryParse(_colorController.text) ?? _distancesWeights[0];
-      _computeAllDatasetDistances();
-      _sortDogModels();
-      update(["dataset"]);
-      update();
-    });
-    _textureController.addListener(() {
-      _distancesWeights[1] =
-          double.tryParse(_textureController.text) ?? _distancesWeights[1];
-      _computeAllDatasetDistances();
-      _sortDogModels();
-      update(["dataset"]);
-      update();
-    });
   }
 
   Future<void> onPickQueryDog() async {
@@ -88,9 +53,9 @@ class HomeUiController extends GetxController {
     _datasetsModels.addAll(models);
     if (_queryModel != null) {
       for (var i = 0; i < models.length; i++) {
-        final List<double> distances = _dogDistances(_queryModel, models[i]);
-        models[i].colorDistance = distances[0];
-        models[i].textureDistance = distances[1];
+        final double distance = _dogDistances(_queryModel, models[i]);
+
+        models[i].deepDistance = distance;
       }
     }
     _sortDogModels();
@@ -98,34 +63,13 @@ class HomeUiController extends GetxController {
     update();
   }
 
-  bool doesDogPassThreshold(DogModel dog) {
-    return dog.distance < _threshold;
-  }
-
-  List<Stats> getStats() {
-    if (_datasetsModels.isEmpty || _queryModel == null) return [];
-    final List<double> colorDistances = List.generate(_datasetsModels.length,
-        (index) => _datasetsModels[index].colorDistance * _distancesWeights[0]);
-    final List<double> textureDistances = List.generate(
-        _datasetsModels.length,
-        (index) =>
-            _datasetsModels[index].textureDistance * _distancesWeights[1]);
-
-    return [
-      Stats.fromData(colorDistances).withPrecision(3),
-      Stats.fromData(textureDistances).withPrecision(3),
-    ];
-  }
-
   void _computeAllDatasetDistances() {
     if (_queryModel == null) return;
     if (_datasetsModels.isEmpty) return;
 
     for (var i = 0; i < _datasetsModels.length; i++) {
-      final List<double> distances =
-          _dogDistances(_queryModel, _datasetsModels[i]);
-      _datasetsModels[i].colorDistance = distances[0];
-      _datasetsModels[i].textureDistance = distances[1];
+      final double distance = _dogDistances(_queryModel, _datasetsModels[i]);
+      _datasetsModels[i].deepDistance = distance;
     }
   }
 
@@ -162,45 +106,36 @@ class HomeUiController extends GetxController {
   ) async {
     img.Image image = img.decodeImage(imageFile.readAsBytesSync());
 
-    // Segment dog
-    List<dynamic> mask = await dogMask(imageFile);
-    img.Image segmentedDog = applyMaskFilter(image, mask);
-
-    // Get descriptors
-    final List<dynamic> colorHistogram = o1o2o3Descriptor.describe(image, mask);
-    final List<dynamic> textureHistogram = loopDescriptor.describe(image, mask);
     // *Used to calculate the deep metric
-    // final List<dynamic> deepDescriptor = deepMetric.run(image);
+    final List<dynamic> deepDescriptor = deepMetric.run(image);
 
-    final ui.Codec codec =
-        await ui.instantiateImageCodec(img.encodePng(segmentedDog));
+    final ui.Codec codec = await ui.instantiateImageCodec(img.encodePng(image));
+
     final ui.FrameInfo frameInfo = await codec.getNextFrame();
     final ui.Image imageUi = frameInfo.image;
     final ByteData bytes =
         await imageUi.toByteData(format: ui.ImageByteFormat.png);
 
     final DogModel model = DogModel(
-      colorHistogram: colorHistogram,
-      textureHistogram: textureHistogram,
+      // colorHistogram: colorHistogram,
+      // textureHistogram: textureHistogram,
       bytes: bytes,
-      distancesWeights: _distancesWeights,
+      deepDescriptor: deepDescriptor,
+      // distancesWeights: _distancesWeights,
     );
     return model;
   }
 
   /// returns the color, texture and deepMetric distance in that order
-  List<double> _dogDistances(DogModel dogA, DogModel dogB) {
-    final double colorDistance =
-        chi2Distance(dogA.colorHistogram, dogB.colorHistogram);
-    final double textureDistance =
-        chi2Distance(dogA.textureHistogram, dogB.textureHistogram);
+  double _dogDistances(DogModel dogA, DogModel dogB) {
+    final double deepDistance =
+        euclideanDistance(dogA.deepDescriptor, dogB.deepDescriptor);
+    print("Deep distance: $deepDistance");
 
-    return [colorDistance, textureDistance];
+    return deepDistance;
   }
 
   // * Descriptors
-  O1O2O3Descriptor o1o2o3Descriptor;
-  LoopDescriptor loopDescriptor;
   DeepMetric deepMetric;
 
   DogModel _queryModel;

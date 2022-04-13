@@ -4,7 +4,6 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
-import 'package:tflite/tflite.dart';
 
 double euclideanDistance(List<double> vector1, List<double> vector2) {
   assert(vector1.length == vector2.length);
@@ -24,39 +23,6 @@ double chi2Distance(List<double> vector1, List<double> vector2) {
   }
 
   return 0.5 * sum;
-}
-
-List<double> image2dHistogram(
-  List<dynamic> image,
-  List<dynamic> mask, {
-  int n_bins = 16,
-  channel_1 = 0,
-  channel_2 = 2,
-}) {
-  final int width = image.shape[0];
-  final int height = image.shape[1];
-  // final int n_bins = 255.0 ~/ binSize;
-  final double binSize = 256.0 / n_bins;
-  List<dynamic> bins =
-      List.filled(n_bins * n_bins, 0.0).reshape([n_bins, n_bins]);
-  int i_bin;
-  int j_bin;
-  int pixelCount = 0;
-  for (int i = 0; i < width; i++) {
-    for (int j = 0; j < height; j++) {
-      if (mask[i][j] == true) {
-        i_bin = (image[i][j][channel_1] / binSize).floor();
-        j_bin = (image[i][j][channel_2] / binSize).floor();
-        bins[i_bin][j_bin] += 1;
-        pixelCount += 1;
-      }
-    }
-  }
-  bins = bins.flatten();
-
-  // Normalize histogram
-  bins = List.generate(n_bins * n_bins, (index) => bins[index] / pixelCount);
-  return List<double>.from(bins);
 }
 
 img.Image resizeByOneSide(img.Image image, {int width, int height}) {
@@ -126,44 +92,6 @@ img.Image applyMaskFilter(img.Image original, List<dynamic> mask) {
   }
   return thumbnail;
 }
-
-Future<List<dynamic>> dogMask(File image) async {
-  await Tflite.loadModel(
-    model: "assets/ml/deeplabv3_257_mv_gpu.tflite",
-    labels: "assets/ml/deeplabv3_257_mv_gpu.txt",
-  );
-  if (image == null) return null;
-  List recognitions = await Tflite.runSegmentationOnImage(
-    path: image.path,
-    imageMean: 127.5,
-    imageStd: 127.5,
-  );
-
-  img.Image _imgImage = img.decodeImage(image.readAsBytesSync());
-
-  img.Image segmentation = img.decodeImage(MemoryImage(recognitions).bytes);
-  segmentation = img.copyResize(segmentation,
-      width: _imgImage.width, height: _imgImage.height);
-
-  List<dynamic> mask =
-      List.filled(segmentation.height * segmentation.width, false)
-          .reshape([segmentation.width, segmentation.height]);
-
-  for (var i = 0; i < segmentation.width; i++) {
-    for (var j = 0; j < segmentation.height; j++) {
-      if (segmentation.getPixel(i, j) != 4278190080) {
-        mask[i][j] = true;
-      } else {
-        mask[i][j] = false;
-      }
-    }
-  }
-
-  Tflite.close();
-  return mask;
-}
-
-List<double> histogram() {}
 
 extension ColorSpaces on img.Image {
   List<dynamic> toList() {

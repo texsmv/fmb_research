@@ -13,7 +13,8 @@ Future<File> uiUtilcropImage(
   ],
   Color color = Colors.blue,
 }) async {
-  final File croppedFile = await ImageCropper.cropImage(
+  ImageCropper cropper = ImageCropper();
+  final File croppedFile = await cropper.cropImage(
     sourcePath: imageFile.path,
     aspectRatioPresets: aspectRatios,
     androidUiSettings: AndroidUiSettings(

@@ -16,7 +16,8 @@ class PickImageBottomSheet extends StatefulWidget {
 class _PickImageBottomSheetState extends State<PickImageBottomSheet> {
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       height: 135,
       child: Column(
         children: [
@@ -30,14 +31,6 @@ class _PickImageBottomSheetState extends State<PickImageBottomSheet> {
               height: 50,
               child: Row(
                 children: const [
-                  // Padding(
-                  //   padding: EdgeInsets.symmetric(horizontal: 16),
-                  //   child: ImageIcon(
-                  //     pIconGalery,
-                  //     size: 17,
-                  //     color: pPrimaryTextColor,
-                  //   ),
-                  // ),
                   Text(
                     "Galería",
                     style: TextStyle(

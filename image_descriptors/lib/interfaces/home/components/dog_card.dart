@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:charts_painter/chart.dart';
 import 'package:flutter/material.dart';
 import 'package:image_descriptors/models/dog_model.dart';
 
@@ -32,26 +31,12 @@ class _DogCardState extends State<DogCard> {
         padding: EdgeInsets.all(15),
         child: Column(
           children: [
-            (model.colorDistance != null && model.textureDistance != null)
+            (model.deepDistance != null)
                 ? Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Color: ${(model.colorDistance * model.distancesWeights[0]).toStringAsFixed(3)}",
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontSize: 12,
-                        ),
-                      ),
-                      Text(
-                        "Texture: ${(model.textureDistance * model.distancesWeights[1]).toStringAsFixed(3)}",
-                        style: TextStyle(
-                          color: Colors.blue,
-                          fontSize: 12,
-                        ),
-                      ),
-                      Text(
-                        "Total: ${model.distance.toStringAsFixed(3)}",
+                        "Deep distance: ${model.distance.toStringAsFixed(3)}",
                         style: TextStyle(
                           color: Colors.black,
                           fontSize: 12,
@@ -72,36 +57,6 @@ class _DogCardState extends State<DogCard> {
                       ),
                     ),
                   ),
-                  Expanded(
-                    child: model.colorHistogram != null
-                        ? Column(
-                            children: [
-                              Expanded(
-                                child: Chart(
-                                  state: ChartState.bar(
-                                    ChartData.fromList(
-                                      model.colorHistogram
-                                          .map((e) => BarValue<void>(e))
-                                          .toList(),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Chart(
-                                  state: ChartState.bar(
-                                    ChartData.fromList(
-                                      model.textureHistogram
-                                          .map((e) => BarValue<void>(e))
-                                          .toList(),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
-                        : SizedBox(),
-                  )
                 ],
               ),
             ),

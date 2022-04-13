@@ -49,80 +49,7 @@ class FiguresView extends GetView<HomeUiController> {
           Divider(),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Column(
-                children: [
-                  Text(
-                    "Color weight:",
-                    style: TextStyle(
-                      color: Colors.red,
-                    ),
-                  ),
-                  SizedBox(height: 5),
-                  Container(
-                    color: Colors.white,
-                    width: 60,
-                    height: 35,
-                    child: TextField(
-                      controller: controller.colorController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: 14, horizontal: 3),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              Column(
-                children: [
-                  Text(
-                    "Texture weight:",
-                    style: TextStyle(
-                      color: Colors.blue,
-                    ),
-                  ),
-                  SizedBox(height: 5),
-                  Container(
-                    color: Colors.white,
-                    width: 60,
-                    height: 35,
-                    child: TextField(
-                      controller: controller.textureController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: 14, horizontal: 3),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              Column(
-                children: [
-                  Text(
-                    "Threshold:",
-                    style: TextStyle(
-                      color: Colors.black,
-                    ),
-                  ),
-                  SizedBox(height: 5),
-                  Container(
-                    color: Colors.white,
-                    width: 60,
-                    height: 35,
-                    child: TextField(
-                      controller: controller.thresholdController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: 14, horizontal: 3),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            children: [],
           ),
           Expanded(
             child: Column(
@@ -136,27 +63,11 @@ class FiguresView extends GetView<HomeUiController> {
                         vertical: 10,
                       ),
                       itemBuilder: (context, index) {
-                        return Row(
-                          children: [
-                            Expanded(
-                              child: AspectRatio(
-                                aspectRatio: 7 / 4,
-                                child: DogCard(
-                                  model: controller.datasetModels[index],
-                                ),
-                              ),
-                            ),
-                            Icon(
-                              controller.doesDogPassThreshold(
-                                      controller.datasetModels[index])
-                                  ? Icons.check
-                                  : Icons.cancel,
-                              color: controller.doesDogPassThreshold(
-                                      controller.datasetModels[index])
-                                  ? Colors.green
-                                  : Colors.red,
-                            )
-                          ],
+                        return AspectRatio(
+                          aspectRatio: 4 / 3,
+                          child: DogCard(
+                            model: controller.datasetModels[index],
+                          ),
                         );
                       },
                       itemCount: controller.datasetModels.length,

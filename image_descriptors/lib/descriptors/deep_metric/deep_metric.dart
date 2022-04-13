@@ -6,10 +6,11 @@ import 'package:tflite_flutter_helper/tflite_flutter_helper.dart';
 import 'package:image/image.dart';
 
 class DeepMetric {
-  final String _modelFile = 'resnet50.tflite';
+  final String _modelFile = 'resnet.tflite';
   Interpreter _interpreter;
   final int imageSize = 448;
-  final int embeddingSize = 128;
+  // final int embeddingSize = 128;
+  final int embeddingSize = 132;
   TensorImage _inputImage;
   List<int> _inputShape;
   List<int> _outputShape;
@@ -43,17 +44,15 @@ class DeepMetric {
 
   TensorImage _preProcess() {
     int cropSize = min(_inputImage.height, _inputImage.width);
-    print(_inputShape[2]);
-    print(_inputShape[3]);
     return ImageProcessorBuilder()
         // .add(ResizeWithCropOrPadOp(cropSize, cropSize))
         .add(ResizeOp(imageSize, imageSize, ResizeMethod.NEAREST_NEIGHBOUR))
         .add(
           NormalizeOp.multipleChannels(
-            [0.406, 0.456, 0.485],
-            [0.225, 0.224, 0.229],
-            // [0.485, 0.456, 0.406],
-            // [0.229, 0.224, 0.225],
+            // [0.406, 0.456, 0.485],
+            // [0.225, 0.224, 0.229],
+            [0.485, 0.456, 0.406],
+            [0.229, 0.224, 0.225],
           ),
         )
         .build()
@@ -70,12 +69,12 @@ class DeepMetric {
     print(_inputImage.getTensorBuffer().getDoubleList().shape);
     print("Buffer shape");
     print(_inputImage.getTensorBuffer().getShape());
+    print(_inputImage.getTensorBuffer().getShape());
     print("--------------------");
     List<dynamic> inputList = _inputImage.getTensorBuffer().getDoubleList();
     List<dynamic> inputListT = transpose(inputList);
     // _interpreter.run(_inputImage.buffer, _outputBuffer.getBuffer());
     _interpreter.run(inputListT, _outputBuffer.getBuffer());
-    print(_outputBuffer.getDoubleList());
     return _outputBuffer.getDoubleList();
   }
 
@@ -98,7 +97,7 @@ class DeepMetric {
     // print(input.shape);
   }
 
-  List<dynamic> get tensorTest =>
-      List.generate(3 * imageSize * imageSize, (index) => 0.485)
-          .reshape([1, 3, imageSize, imageSize]);
+  // List<dynamic> get tensorTest =>
+  //     List.generate(3 * imageSize * imageSize, (index) => 0.485)
+  //         .reshape([1, 3, imageSize, imageSize]);
 }
